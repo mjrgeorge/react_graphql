@@ -2,78 +2,118 @@ import { gql, useMutation, useQuery } from "@apollo/client";
 import React, { useState } from "react";
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import Paper from '@mui/material/Paper';
 import { Avatar, Button, Container, IconButton, List, ListItem, ListItemIcon, ListItemSecondaryAction, ListItemText, TextField, Typography } from "@mui/material";
 const App = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
-  const { loading, error, data } = useQuery(GET_ALL_COMMENTS);
+  const { loading, error, data } = useQuery(GET_ALL_POSTS);
 
-  if (loading) return <h1>Loding...</h1>;
+  const [createNewPost] = useMutation(ADD_POST, {
+    onCompleted(data) {
+      setTitle('');
+      setContent('');
+    },
+    refetchQueries: [
+      {
+        query: GET_ALL_POSTS,
+      }
+    ]
+  });
+
+  const [deletePost] = useMutation(DELETE_POST, {
+    onCompleted(data) {
+      alert("Successfully Deleted!")
+    },
+    refetchQueries: [
+      {
+        query: GET_ALL_POSTS,
+      }
+    ]
+  });
+
+  if (loading) return <h1>Loading...</h1>;
   if (error) return <h1>Error...</h1>;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    createNewPost({ variables: { title: title, content: content } });
+    console.log(title, content);
+  }
+  const deleteSinglePost = (id) => {
+    deletePost({ variables: { id: id } });
+    console.log(id);
+  }
 
   return (
     <Container maxWidth="sm">
-      <Typography color="secondary" align="center" variant="h4" gutterBottom>
-        GraphQL Practice App with React Js
+      <Typography color="error" align="center" variant="h4" gutterBottom>
+        GraphQL with React Js
       </Typography>
-      <form>
+      <form onSubmit={handleSubmit}>
         <TextField
-          fullWidth
           value={title}
-          label='Title'
+          label='Enter Your Title'
           variant="outlined"
           onChange={(e) => setTitle(e.target.value)}
+          fullWidth
         />
         <br />
         <br />
         <TextField
-          fullWidth
           value={content}
-          label='Content'
+          label='Enter Your Content'
           variant="outlined"
           onChange={(e) => setContent(e.target.value)}
+          fullWidth
         />
         <br />
         <br />
         <Button
+          type="submit"
           variant="contained"
           color="secondary"
-          type="submit"
+          size="large"
           fullWidth
+          disabled={!title || !content}
         >
           Submit
         </Button>
       </form>
-      <List>
-        {
-          data?.allPost?.map((item) => (
-            <ListItem button key={item?.id}>
-              <ListItemIcon>
-                <Avatar style={{
-                  backgroundColor: 'blue'
-                }}>
-                  1
-                </Avatar>
-              </ListItemIcon>
-              <ListItemText primary={item?.title} />
-              <ListItemSecondaryAction>
-                <IconButton>
-                  <EditIcon color="primary" />
-                </IconButton>
-                <IconButton>
-                  <DeleteIcon color="secondary" />
-                </IconButton>
-              </ListItemSecondaryAction>
-            </ListItem>
-          ))
-        }
-      </List>
-    </Container>
+      <br />
+      <br />
+      <Paper elevation={3} >
+        <List>
+          {
+            data?.allPost?.map((item, i) => (
+              <ListItem button key={i}>
+                <ListItemIcon>
+                  <Avatar style={{
+                    backgroundColor: 'teal'
+                  }}>
+                    {i + 1}
+                  </Avatar>
+                </ListItemIcon>
+                <ListItemText primary={item?.title} secondary={item?.content} />
+                <ListItemSecondaryAction>
+                  <IconButton>
+                    <EditIcon color="primary" />
+                  </IconButton>
+                  <IconButton onClick={() => deleteSinglePost(item?.id)}>
+                    <DeleteIcon color="secondary" />
+                  </IconButton>
+                </ListItemSecondaryAction>
+              </ListItem>
+            ))
+          }
+        </List>
+      </Paper>
+    </Container >
   );
 };
 
-const GET_ALL_COMMENTS = gql`
+const GET_ALL_POSTS = gql`
   {
     allPost{
       id
@@ -81,5 +121,19 @@ const GET_ALL_COMMENTS = gql`
       content
     }
   }
+`;
+const ADD_POST = gql`
+mutation CreateNewPost ($title: String!, $content: String!) {
+  createNewPost(title: $title, content: $content) {
+    createdStatus
+  }
+}
+`;
+const DELETE_POST = gql`
+mutation DeletePost($id: Int!){
+  deletePost(postId: $id) {
+    deletedStatus
+  }
+}
 `;
 export default App;

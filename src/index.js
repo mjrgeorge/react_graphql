@@ -7,9 +7,8 @@ import {
   ApolloProvider,
 } from "@apollo/client";
 
-
 const client = new ApolloClient({
-  uri: "http://api.dev.eschooljourney.com:8000/graphql/post/view",
+  uri: "http://api.dev.eschooljourney.com:8000/graphql",
   cache: new InMemoryCache(),
 });
 
