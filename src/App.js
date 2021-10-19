@@ -1,8 +1,11 @@
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import React, { useState } from "react";
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import Paper from '@mui/material/Paper';
+import {ADD_POST} from './GraphQL/Mutations';
+import {DELETE_POST} from './GraphQL/Mutations';
+import {GET_ALL_POSTS} from './GraphQL/Queries';
 import { Avatar, Button, Container, IconButton, List, ListItem, ListItemIcon, ListItemSecondaryAction, ListItemText, TextField, Typography } from "@mui/material";
 const App = () => {
   const [title, setTitle] = useState("");
@@ -113,27 +116,4 @@ const App = () => {
   );
 };
 
-const GET_ALL_POSTS = gql`
-  {
-    allPost{
-      id
-      title
-      content
-    }
-  }
-`;
-const ADD_POST = gql`
-mutation CreateNewPost ($title: String!, $content: String!) {
-  createNewPost(title: $title, content: $content) {
-    createdStatus
-  }
-}
-`;
-const DELETE_POST = gql`
-mutation DeletePost($id: Int!){
-  deletePost(postId: $id) {
-    deletedStatus
-  }
-}
-`;
 export default App;
